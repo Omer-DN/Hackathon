@@ -1,12 +1,9 @@
 import math
-
-import amp
 import cv2
 import numpy as np
 from time import time
 import mediapipe as mp
 import matplotlib.pyplot as plt
-from pyparsing import results
 
 # Initializing mediapipe pose class.
 mp_pose = mp.solutions.pose
@@ -83,35 +80,6 @@ def detectPose(image, pose, display=True):
         return output_image, landmarks
 
 
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-
-
 def calculateAngle(landmark1, landmark2, landmark3):
     '''
     This function calculates angle between three different landmarks.
@@ -133,7 +101,7 @@ def calculateAngle(landmark1, landmark2, landmark3):
     angle = math.degrees(math.atan2(y3 - y2, x3 - x2) - math.atan2(y1 - y2, x1 - x2))
 
     # Check if the angle is less than zero.
-    if angle &lt; 0:
+    if angle < 0:
 
         # Add 360 to the found angle.
         angle += 360
@@ -201,19 +169,18 @@ def classifyPose(landmarks, output_image, display=False):
     # ----------------------------------------------------------------------------------------------------------------
 
     # Check if the both arms are straight.
-    if left_elbow_angle & gt; 165 and left_elbow_angle & lt; 195 and right_elbow_angle & gt; 165 and right_elbow_angle & lt; 195:
-
+    if left_elbow_angle > 165 and left_elbow_angle < 195 and right_elbow_angle > 165 and right_elbow_angle < 195:
         # Check if shoulders are at the required angle.
-        if left_shoulder_angle & gt; 80 and left_shoulder_angle & lt; 110 and right_shoulder_angle & gt; 80 and right_shoulder_angle & lt; 110:
+        if left_shoulder_angle > 80 and left_shoulder_angle < 110 and right_shoulder_angle > 80 and right_shoulder_angle <110:
 
             # Check if it is the warrior II pose.
             # ----------------------------------------------------------------------------------------------------------------
 
             # Check if one leg is straight.
-            if left_knee_angle & gt; 165 and left_knee_angle & lt; 195 or right_knee_angle & gt; 165 and right_knee_angle & lt; 195:
+            if left_knee_angle > 165 and left_knee_angle < 195 or right_knee_angle > 165 and right_knee_angle <195:
 
                 # Check if the other leg is bended at the required angle.
-                if left_knee_angle & gt; 90 and left_knee_angle & lt; 120 or right_knee_angle & gt; 90 and right_knee_angle & lt; 120:
+                if left_knee_angle > 90 and left_knee_angle < 120 or right_knee_angle > 90 and right_knee_angle < 120:
 
                     # Specify the label of the pose that is Warrior II pose.
                     label = 'Warrior II Pose'
@@ -224,7 +191,7 @@ def classifyPose(landmarks, output_image, display=False):
             # ----------------------------------------------------------------------------------------------------------------
 
             # Check if both legs are straight
-            if left_knee_angle & gt; 160 and left_knee_angle & lt; 195 and right_knee_angle & gt; 160 and right_knee_angle & lt; 195:
+            if left_knee_angle > 160 and left_knee_angle < 195 and right_knee_angle > 160 and right_knee_angle < 195:
 
                 # Specify the label of the pose that is tree pose.
                 label = 'T Pose'
@@ -235,10 +202,10 @@ def classifyPose(landmarks, output_image, display=False):
     # ----------------------------------------------------------------------------------------------------------------
 
     # Check if one leg is straight
-    if left_knee_angle & gt; 165 and left_knee_angle & lt; 195 or right_knee_angle & gt; 165 and right_knee_angle & lt; 195:
+    if left_knee_angle > 165 and left_knee_angle < 195 or right_knee_angle > 165 and right_knee_angle < 195:
 
         # Check if the other leg is bended at the required angle.
-        if left_knee_angle &gt; 315 and left_knee_angle & lt; 335 or right_knee_angle & gt; 25 and right_knee_angle & lt; 45:
+        if left_knee_angle > 315 and left_knee_angle < 335 or right_knee_angle > 25 and right_knee_angle < 45:
 
             # Specify the label of the pose that is tree pose.
             label = 'Tree Pose'
@@ -274,7 +241,7 @@ def main():
     pose_video = mp_pose.Pose(static_image_mode=False, min_detection_confidence=0.5, model_complexity=1)
 
     # Initialize the VideoCapture object to read from the webcam.
-    camera_video = cv2.VideoCapture('sample.mp4')
+    camera_video = cv2.VideoCapture(0)
 
     # Initialize a resizable window.
     cv2.namedWindow('Pose Classification', cv2.WINDOW_NORMAL)
@@ -312,8 +279,7 @@ def main():
 
         # Wait until a key is pressed.
         # Retreive the ASCII code of the key pressed
-        k = cv2.waitKey(1) & amp;
-        0xFF
+        k = cv2.waitKey(1) & 0xFF
 
         # Check if 'ESC' is pressed.
         if (k == 27):
