@@ -1,6 +1,6 @@
 import math
 
-import amp as amp
+import amp
 import cv2
 import numpy as np
 from time import time
@@ -83,30 +83,212 @@ def detectPose(image, pose, display=True):
         return output_image, landmarks
 
 
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+
+
+def calculateAngle(landmark1, landmark2, landmark3):
+    '''
+    This function calculates angle between three different landmarks.
+    Args:
+        landmark1: The first landmark containing the x,y and z coordinates.
+        landmark2: The second landmark containing the x,y and z coordinates.
+        landmark3: The third landmark containing the x,y and z coordinates.
+    Returns:
+        angle: The calculated angle between the three landmarks.
+
+    '''
+
+    # Get the required landmarks coordinates.
+    x1, y1, _ = landmark1
+    x2, y2, _ = landmark2
+    x3, y3, _ = landmark3
+
+    # Calculate the angle between the three points
+    angle = math.degrees(math.atan2(y3 - y2, x3 - x2) - math.atan2(y1 - y2, x1 - x2))
+
+    # Check if the angle is less than zero.
+    if angle &lt; 0:
+
+        # Add 360 to the found angle.
+        angle += 360
+
+    # Return the calculated angle.
+    return angle
+
+def classifyPose(landmarks, output_image, display=False):
+    '''
+    This function classifies yoga poses depending upon the angles of various body joints.
+    Args:
+        landmarks: A list of detected landmarks of the person whose pose needs to be classified.
+        output_image: A image of the person with the detected pose landmarks drawn.
+        display: A boolean value that is if set to true the function displays the resultant image with the pose label
+        written on it and returns nothing.
+    Returns:
+        output_image: The image with the detected pose landmarks drawn and pose label written.
+        label: The classified pose label of the person in the output_image.
+
+    '''
+
+    # Initialize the label of the pose. It is not known at this stage.
+    label = 'Unknown Pose'
+
+    # Specify the color (Red) with which the label will be written on the image.
+    color = (0, 0, 255)
+
+    # Calculate the required angles.
+    # ----------------------------------------------------------------------------------------------------------------
+
+    # Get the angle between the left shoulder, elbow and wrist points.
+    left_elbow_angle = calculateAngle(landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value],
+                                      landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value],
+                                      landmarks[mp_pose.PoseLandmark.LEFT_WRIST.value])
+
+    # Get the angle between the right shoulder, elbow and wrist points.
+    right_elbow_angle = calculateAngle(landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value],
+                                       landmarks[mp_pose.PoseLandmark.RIGHT_ELBOW.value],
+                                       landmarks[mp_pose.PoseLandmark.RIGHT_WRIST.value])
+
+    # Get the angle between the left elbow, shoulder and hip points.
+    left_shoulder_angle = calculateAngle(landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value],
+                                         landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value],
+                                         landmarks[mp_pose.PoseLandmark.LEFT_HIP.value])
+
+    # Get the angle between the right hip, shoulder and elbow points.
+    right_shoulder_angle = calculateAngle(landmarks[mp_pose.PoseLandmark.RIGHT_HIP.value],
+                                          landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value],
+                                          landmarks[mp_pose.PoseLandmark.RIGHT_ELBOW.value])
+
+    # Get the angle between the left hip, knee and ankle points.
+    left_knee_angle = calculateAngle(landmarks[mp_pose.PoseLandmark.LEFT_HIP.value],
+                                     landmarks[mp_pose.PoseLandmark.LEFT_KNEE.value],
+                                     landmarks[mp_pose.PoseLandmark.LEFT_ANKLE.value])
+
+    # Get the angle between the right hip, knee and ankle points
+    right_knee_angle = calculateAngle(landmarks[mp_pose.PoseLandmark.RIGHT_HIP.value],
+                                      landmarks[mp_pose.PoseLandmark.RIGHT_KNEE.value],
+                                      landmarks[mp_pose.PoseLandmark.RIGHT_ANKLE.value])
+
+    # ----------------------------------------------------------------------------------------------------------------
+
+    # Check if it is the warrior II pose or the T pose.
+    # As for both of them, both arms should be straight and shoulders should be at the specific angle.
+    # ----------------------------------------------------------------------------------------------------------------
+
+    # Check if the both arms are straight.
+    if left_elbow_angle & gt; 165 and left_elbow_angle & lt; 195 and right_elbow_angle & gt; 165 and right_elbow_angle & lt; 195:
+
+        # Check if shoulders are at the required angle.
+        if left_shoulder_angle & gt; 80 and left_shoulder_angle & lt; 110 and right_shoulder_angle & gt; 80 and right_shoulder_angle & lt; 110:
+
+            # Check if it is the warrior II pose.
+            # ----------------------------------------------------------------------------------------------------------------
+
+            # Check if one leg is straight.
+            if left_knee_angle & gt; 165 and left_knee_angle & lt; 195 or right_knee_angle & gt; 165 and right_knee_angle & lt; 195:
+
+                # Check if the other leg is bended at the required angle.
+                if left_knee_angle & gt; 90 and left_knee_angle & lt; 120 or right_knee_angle & gt; 90 and right_knee_angle & lt; 120:
+
+                    # Specify the label of the pose that is Warrior II pose.
+                    label = 'Warrior II Pose'
+
+                    # ----------------------------------------------------------------------------------------------------------------
+
+            # Check if it is the T pose.
+            # ----------------------------------------------------------------------------------------------------------------
+
+            # Check if both legs are straight
+            if left_knee_angle & gt; 160 and left_knee_angle & lt; 195 and right_knee_angle & gt; 160 and right_knee_angle & lt; 195:
+
+                # Specify the label of the pose that is tree pose.
+                label = 'T Pose'
+
+    # ----------------------------------------------------------------------------------------------------------------
+
+    # Check if it is the tree pose.
+    # ----------------------------------------------------------------------------------------------------------------
+
+    # Check if one leg is straight
+    if left_knee_angle & gt; 165 and left_knee_angle & lt; 195 or right_knee_angle & gt; 165 and right_knee_angle & lt; 195:
+
+        # Check if the other leg is bended at the required angle.
+        if left_knee_angle &gt; 315 and left_knee_angle & lt; 335 or right_knee_angle & gt; 25 and right_knee_angle & lt; 45:
+
+            # Specify the label of the pose that is tree pose.
+            label = 'Tree Pose'
+
+    # ----------------------------------------------------------------------------------------------------------------
+
+    # Check if the pose is classified successfully
+    if label != 'Unknown Pose':
+        # Update the color (to green) with which the label will be written on the image.
+        color = (0, 255, 0)
+
+        # Write the label on the output image.
+    cv2.putText(output_image, label, (10, 30), cv2.FONT_HERSHEY_PLAIN, 2, color, 2)
+
+    # Check if the resultant image is specified to be displayed.
+    if display:
+
+        # Display the resultant image.
+        plt.figure(figsize=[10, 10])
+        plt.imshow(output_image[:, :, ::-1]);
+        plt.title("Output Image");
+        plt.axis('off');
+
+    else:
+
+        # Return the output image and the classified label.
+        return output_image, label
+
+
 def main():
 
     # Setup Pose function for video.
     pose_video = mp_pose.Pose(static_image_mode=False, min_detection_confidence=0.5, model_complexity=1)
 
     # Initialize the VideoCapture object to read from the webcam.
-    # video = cv2.VideoCapture(0)
+    camera_video = cv2.VideoCapture('sample.mp4')
 
-    # Initialize the VideoCapture object to read from a video stored in the disk.
-    video = cv2.VideoCapture('media/running.mp4')
+    # Initialize a resizable window.
+    cv2.namedWindow('Pose Classification', cv2.WINDOW_NORMAL)
 
-    # Initialize a variable to store the time of the previous frame.
-    time1 = 0
-
-    # Iterate until the video is accessed successfully.
-    while video.isOpened():
+    # Iterate until the webcam is accessed successfully.
+    while camera_video.isOpened():
 
         # Read a frame.
-        ok, frame = video.read()
+        ok, frame = camera_video.read()
 
         # Check if frame is not read properly.
         if not ok:
-            # Break the loop.
-            break
+            # Continue to the next iteration to read the next frame and ignore the empty camera frame.
+            continue
 
         # Flip the frame horizontally for natural (selfie-view) visualization.
         frame = cv2.flip(frame, 1)
@@ -118,27 +300,15 @@ def main():
         frame = cv2.resize(frame, (int(frame_width * (640 / frame_height)), 640))
 
         # Perform Pose landmark detection.
-        frame, _ = detectPose(frame, pose_video, display=False)
+        frame, landmarks = detectPose(frame, pose_video, display=False)
 
-        # Set the time for this frame to the current time.
-        time2 = time()
-
-        # Check if the difference between the previous and this frame time &gt; 0 to avoid division by zero.
-        if (time2 - time1) & gt; 0:
-
-            # Calculate the number of frames per second.
-            frames_per_second = 1.0 / (time2 - time1)
-
-            # Write the calculated number of frames per second on the frame.
-            cv2.putText(frame, 'FPS: {}'.format(int(frames_per_second)), (10, 30), cv2.FONT_HERSHEY_PLAIN, 2,
-                        (0, 255, 0), 3)
-
-        # Update the previous frame time to this frame time.
-        # As this frame will become previous frame in next iteration.
-        time1 = time2
+        # Check if the landmarks are detected.
+        if landmarks:
+            # Perform the Pose Classification.
+            frame, _ = classifyPose(landmarks, frame, display=False)
 
         # Display the frame.
-        cv2.imshow('Pose Detection', frame)
+        cv2.imshow('Pose Classification', frame)
 
         # Wait until a key is pressed.
         # Retreive the ASCII code of the key pressed
@@ -150,15 +320,9 @@ def main():
             # Break the loop.
             break
 
-    # Release the VideoCapture object.
-    video.release()
-
-    # Close the windows.
+    # Release the VideoCapture object and close the windows.
+    camera_video.release()
     cv2.destroyAllWindows()
-
-
-
-
 
 if __name__ == "__main__":
     main()
