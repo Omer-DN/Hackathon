@@ -15,7 +15,6 @@ mp_drawing = mp.solutions.drawing_utils
 # The function received the image and the locate pose in the image as parameters
 #  and return the image after proccessing and the landmarks in the image
 def detect_pose(image, pose):
-
     # Create a copy of the input image.
     output_image = image.copy()
 
@@ -95,10 +94,10 @@ def left_hand_angles(landmarks, mp_pose):
 
 
 def serratus_strech(limb1, limb2):
-    if abs(limb1-18.09) < 10 and abs(limb2-173.36) < 10:
+    if abs(limb1 - 117.09) < 10 and abs(limb2 - 206.36) < 10:
         return 1
 
-    elif abs(limb1-25.4) < 10 and abs(limb2-171.57) < 10:
+    elif abs(limb1 - 188) < 10 and abs(limb2 - 213) < 10:
         return 2
 
     else:
@@ -106,6 +105,9 @@ def serratus_strech(limb1, limb2):
 
 
 def main():
+    counter = 0
+    arrivePose1 = False
+
     # Setup Pose function for video.
     pose_video = mp_pose.Pose(static_image_mode=False, min_detection_confidence=0.5, model_complexity=1)
 
@@ -138,31 +140,45 @@ def main():
         # Perform Pose landmark detection.
         frame, landmarks = detect_pose(frame, pose_video)
 
-        right_shoulder_angle, right_elbow_angle = right_hand_angles(landmarks, mp_pose)
-
         # Check if the landmarks are detected.
         if landmarks:
+            right_shoulder_angle, right_elbow_angle = right_hand_angles(landmarks, mp_pose)
+            left_shoulder_angle, left_elbow_angle = left_hand_angles(landmarks, mp_pose)
+            #####################################################################################
+            print("right shoulder angle: " + str(right_shoulder_angle))
+            print("right_elbow_angle: " + str(right_elbow_angle))
+            #####################################################################################
             pose_score = serratus_strech(right_shoulder_angle, right_elbow_angle)
+            pose_score2 = serratus_strech(left_shoulder_angle, left_elbow_angle)
+
+            label = str(counter) + " times"
+            color = (75, 255, 255)
+            cv2.putText(frame, label, (50, 100), cv2.FONT_HERSHEY_PLAIN, 2, color, 2)
+
             # Perform the Pose Classification.
-            if pose_score == 0:
+            if pose_score == 0 or pose_score2 == 0:
                 label = 'Wrong Pose'
                 color = (0, 0, 255)
                 cv2.putText(frame, label, (10, 30), cv2.FONT_HERSHEY_PLAIN, 2, color, 2)
                 cv2.imshow('Pose Classification', frame)
 
-            elif  pose_score == 1:
+            elif pose_score == 1 or pose_score2 == 1:
+                arrivePose1 = True
                 # Display the frame.
                 label = 'Pose number 1'
                 color = (0, 255, 0)
                 cv2.putText(frame, label, (10, 30), cv2.FONT_HERSHEY_PLAIN, 2, color, 2)
                 cv2.imshow('Pose Classification', frame)
-            elif pose_score == 2:
+
+            elif pose_score == 2 or pose_score2 == 2:
+                if arrivePose1:
+                    counter += 1
+                    arrivePose1 = False
                 # Display the frame.
                 label = 'Pose number 2'
                 color = (0, 255, 0)
                 cv2.putText(frame, label, (10, 30), cv2.FONT_HERSHEY_PLAIN, 2, color, 2)
                 cv2.imshow('Pose Classification', frame)
-
 
         # Wait until a key is pressed.
         # Retreive the ASCII code of the key pressed
@@ -180,5 +196,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
