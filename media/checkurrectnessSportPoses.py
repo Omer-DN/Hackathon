@@ -142,21 +142,21 @@ def main():
 
         # Check if the landmarks are detected.
         if landmarks:
-            num = serratus_strech(right_shoulder_angle, right_elbow_angle)
+            pose_score = serratus_strech(right_shoulder_angle, right_elbow_angle)
             # Perform the Pose Classification.
-            if num == 0:
+            if pose_score == 0:
                 label = 'Wrong Pose'
                 color = (0, 0, 255)
                 cv2.putText(frame, label, (10, 30), cv2.FONT_HERSHEY_PLAIN, 2, color, 2)
                 cv2.imshow('Pose Classification', frame)
 
-            elif  num == 1:
+            elif  pose_score == 1:
                 # Display the frame.
                 label = 'Pose number 1'
                 color = (0, 255, 0)
                 cv2.putText(frame, label, (10, 30), cv2.FONT_HERSHEY_PLAIN, 2, color, 2)
                 cv2.imshow('Pose Classification', frame)
-            elif num == 2:
+            elif pose_score == 2:
                 # Display the frame.
                 label = 'Pose number 2'
                 color = (0, 255, 0)
