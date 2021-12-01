@@ -58,13 +58,13 @@ def calculate_angle(landmark1, landmark2, landmark3):
 
     # Check if the angle is less than zero.
     if angle < 0:
-        # Add 360 to the found angle.
-        angle += 360
+        angle = abs(angle)
 
     # Return the calculated angle.
     return angle
 
 
+#####################################################################
 def right_hand_angles(landmarks, mp_pose):
     # Get the angle between the right shoulder, elbow and wrist points.
     right_elbow_angle = calculate_angle(landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value],
@@ -93,11 +93,24 @@ def left_hand_angles(landmarks, mp_pose):
     return left_shoulder_angle, left_elbow_angle
 
 
-def serratus_strech(limb1, limb2):
-    if abs(limb1 - 117.09) < 10 and abs(limb2 - 206.36) < 10:
+#####################################################################
+
+def serratus_strech(shoulder_angle, elbow_angle):
+    if abs(shoulder_angle - 260) < 15 and abs(elbow_angle - 165) < 15:
         return 1
 
-    elif abs(limb1 - 188) < 10 and abs(limb2 - 213) < 10:
+    elif abs(shoulder_angle - 168) < 15 and abs(elbow_angle - 131) < 15:
+        return 2
+
+    else:
+        return 0
+
+
+def lift_weights(limb1, limb2):
+    if abs(limb1 - 180) < 10 and abs(limb2 - 180) < 10:
+        return 1
+
+    elif abs(limb1 - 10) < 20 and abs(limb2 - 10) < 20:
         return 2
 
     else:
@@ -107,6 +120,8 @@ def serratus_strech(limb1, limb2):
 def main():
     counter = 0
     arrivePose1 = False
+
+    choice = int(input('enter exercise name: \n(1-starch, 2-lift_weights)'))
 
     # Setup Pose function for video.
     pose_video = mp_pose.Pose(static_image_mode=False, min_detection_confidence=0.5, model_complexity=1)
@@ -142,27 +157,28 @@ def main():
 
         # Check if the landmarks are detected.
         if landmarks:
-            right_shoulder_angle, right_elbow_angle = right_hand_angles(landmarks, mp_pose)
-            left_shoulder_angle, left_elbow_angle = left_hand_angles(landmarks, mp_pose)
-            #####################################################################################
-            print("right shoulder angle: " + str(right_shoulder_angle))
-            print("right_elbow_angle: " + str(right_elbow_angle))
-            #####################################################################################
-            pose_score = serratus_strech(right_shoulder_angle, right_elbow_angle)
-            pose_score2 = serratus_strech(left_shoulder_angle, left_elbow_angle)
+
+            if choice == 1:
+                right_shoulder_angle, right_elbow_angle = right_hand_angles(landmarks, mp_pose)
+                pose_score = serratus_strech(right_shoulder_angle, right_elbow_angle)
+
+            elif choice == 2:
+                _, right_elbow_angle = right_hand_angles(landmarks, mp_pose)
+                _, left_elbow_angle = left_hand_angles(landmarks, mp_pose)
+                pose_score = lift_weights(right_elbow_angle, left_elbow_angle)
 
             label = str(counter) + " times"
             color = (75, 255, 255)
             cv2.putText(frame, label, (50, 100), cv2.FONT_HERSHEY_PLAIN, 2, color, 2)
 
             # Perform the Pose Classification.
-            if pose_score == 0 or pose_score2 == 0:
+            if pose_score == 0:
                 label = 'Wrong Pose'
                 color = (0, 0, 255)
                 cv2.putText(frame, label, (10, 30), cv2.FONT_HERSHEY_PLAIN, 2, color, 2)
                 cv2.imshow('Pose Classification', frame)
 
-            elif pose_score == 1 or pose_score2 == 1:
+            elif pose_score == 1:
                 arrivePose1 = True
                 # Display the frame.
                 label = 'Pose number 1'
@@ -170,7 +186,7 @@ def main():
                 cv2.putText(frame, label, (10, 30), cv2.FONT_HERSHEY_PLAIN, 2, color, 2)
                 cv2.imshow('Pose Classification', frame)
 
-            elif pose_score == 2 or pose_score2 == 2:
+            elif pose_score == 2:
                 if arrivePose1:
                     counter += 1
                     arrivePose1 = False
