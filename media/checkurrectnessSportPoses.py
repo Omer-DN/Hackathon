@@ -107,19 +107,34 @@ def serratus_strech(shoulder_angle, elbow_angle):
 
 
 def lift_weights(limb1, limb2):
-    if abs(limb1 - 180) < 10 and abs(limb2 - 180) < 10:
+    if abs(limb1 - 180) < 15 and abs(limb2 - 180) < 15:
         return 1
 
-    elif abs(limb1 - 10) < 20 and abs(limb2 - 10) < 20:
+    elif abs(limb1 - 10) < 15 and abs(limb2 - 10) < 15:
         return 2
 
     else:
         return 0
 
 
+def distance_from_pose_A(limb1, limb2, state):
+    if state == 1:
+        return int(abs(limb1 - 260 -15)), int(abs(limb2 - 165 -15))
+    elif state == 2:
+        return int(abs(limb1 - 180 -15)), int(abs(limb2 - 180 -15))
+
+
+def distance_from_pose_B(limb1, limb2, state):
+    if state == 1:
+        return int(abs(limb1 - 168 -15)), int(abs(limb2 - 131 -15))
+    elif state == 2:
+        return int(abs(limb1 - 10 -15)), int(abs(limb2 - 10 -15))
+
+
 def main():
     counter = 0
     arrivePose1 = False
+    first_time = True
 
     choice = int(input('enter exercise name: \n(1-starch, 2-lift_weights)'))
 
@@ -130,7 +145,7 @@ def main():
     camera_video = cv2.VideoCapture(0)
 
     # Initialize a resizable window.
-    cv2.namedWindow('Pose Classification', cv2.WINDOW_NORMAL)
+    cv2.namedWindow('My Coach', cv2.WINDOW_NORMAL)
 
     # Iterate until the webcam is accessed successfully.
     while camera_video.isOpened():
@@ -167,24 +182,47 @@ def main():
                 _, left_elbow_angle = left_hand_angles(landmarks, mp_pose)
                 pose_score = lift_weights(right_elbow_angle, left_elbow_angle)
 
-            label = str(counter) + " times"
-            color = (75, 255, 255)
-            cv2.putText(frame, label, (50, 100), cv2.FONT_HERSHEY_PLAIN, 2, color, 2)
+            label = "succeeded: " + str(counter)
+            color = (0, 0, 0)
+            cv2.putText(frame, label, (50, 150), cv2.FONT_HERSHEY_PLAIN, 2, color, 2)
+
+            if arrivePose1 == False:
+                if choice ==1:
+                    shoulder_distance, elbow_distance = distance_from_pose_A(right_shoulder_angle, right_elbow_angle, 1)
+
+                    if first_time:
+                        distance_label = "UP: " + "shoulder:" + str(shoulder_distance) + "     elbow: " + str(
+                            elbow_distance)
+                        first_time = False
+                    else:
+                        distance_label = "DOWN:  "+" shoulder:" + str(shoulder_distance) + "     elbow: " + str(elbow_distance)
+
+                elif choice ==2:
+
+                    if first_time:
+                        distance_label = "UP: " + str(distance_from_pose_A(right_elbow_angle, left_elbow_angle, 2))
+                        first_time = False
+                    else:
+                        distance_label = "DOWN:" + str(distance_from_pose_A(right_elbow_angle, left_elbow_angle, 2))
+            else:
+                if choice ==1:
+                    distance_label = "UP:  " + str(distance_from_pose_B(right_shoulder_angle, right_elbow_angle, 1))
+                elif choice ==2:
+                    distance_label = "UP:  " + str(distance_from_pose_B(right_elbow_angle, left_elbow_angle, 2))
+
+            cv2.putText(frame, distance_label, (100, 50), cv2.FONT_HERSHEY_PLAIN, 2, (25, 75, 150), 2)
+
 
             # Perform the Pose Classification.
             if pose_score == 0:
                 label = 'Wrong Pose'
                 color = (0, 0, 255)
-                cv2.putText(frame, label, (10, 30), cv2.FONT_HERSHEY_PLAIN, 2, color, 2)
-                cv2.imshow('Pose Classification', frame)
 
             elif pose_score == 1:
                 arrivePose1 = True
                 # Display the frame.
                 label = 'Pose number 1'
                 color = (0, 255, 0)
-                cv2.putText(frame, label, (10, 30), cv2.FONT_HERSHEY_PLAIN, 2, color, 2)
-                cv2.imshow('Pose Classification', frame)
 
             elif pose_score == 2:
                 if arrivePose1:
@@ -193,8 +231,9 @@ def main():
                 # Display the frame.
                 label = 'Pose number 2'
                 color = (0, 255, 0)
-                cv2.putText(frame, label, (10, 30), cv2.FONT_HERSHEY_PLAIN, 2, color, 2)
-                cv2.imshow('Pose Classification', frame)
+
+            cv2.putText(frame, label, (50, 100), cv2.FONT_HERSHEY_PLAIN, 2, color, 2)
+            cv2.imshow('My Coach', frame)
 
         # Wait until a key is pressed.
         # Retreive the ASCII code of the key pressed
