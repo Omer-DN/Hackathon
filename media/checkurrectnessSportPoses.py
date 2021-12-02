@@ -34,8 +34,8 @@ def detect_pose(image, pose):
     if results.pose_landmarks:
 
         # Draw Pose landmarks on the output image.
-        mp_drawing.draw_landmarks(image=output_image, landmark_list=results.pose_landmarks,
-                                  connections=mp_pose.POSE_CONNECTIONS)
+       # mp_drawing.draw_landmarks(image=output_image, landmark_list=results.pose_landmarks,
+        #                          connections=mp_pose.POSE_CONNECTIONS)
 
         # Iterate over the detected landmarks.
         for landmark in results.pose_landmarks.landmark:
@@ -184,31 +184,30 @@ def main():
 
             label = "succeeded: " + str(counter)
             color = (0, 0, 0)
-            cv2.putText(frame, label, (50, 150), cv2.FONT_HERSHEY_PLAIN, 2, color, 2)
+            cv2.putText(frame, label, (100, 100), cv2.FONT_HERSHEY_PLAIN, 2, color, 2)
 
             if arrivePose1 == False:
                 if choice ==1:
                     shoulder_distance, elbow_distance = distance_from_pose_A(right_shoulder_angle, right_elbow_angle, 1)
 
                     if first_time:
-                        distance_label = "UP: " + "shoulder:" + str(shoulder_distance) + "     elbow: " + str(
-                            elbow_distance)
+                        distance_label = "UP"
                         first_time = False
                     else:
-                        distance_label = "DOWN:  "+" shoulder:" + str(shoulder_distance) + "     elbow: " + str(elbow_distance)
+                        distance_label = "DOWN"
 
                 elif choice ==2:
 
                     if first_time:
-                        distance_label = "UP: " + str(distance_from_pose_A(right_elbow_angle, left_elbow_angle, 2))
+                        distance_label = "UP"
                         first_time = False
                     else:
-                        distance_label = "DOWN:" + str(distance_from_pose_A(right_elbow_angle, left_elbow_angle, 2))
+                        distance_label = "DOWN"
             else:
                 if choice ==1:
-                    distance_label = "UP:  " + str(distance_from_pose_B(right_shoulder_angle, right_elbow_angle, 1))
+                    distance_label = "UP"
                 elif choice ==2:
-                    distance_label = "UP:  " + str(distance_from_pose_B(right_elbow_angle, left_elbow_angle, 2))
+                    distance_label = "UP"
 
             cv2.putText(frame, distance_label, (100, 50), cv2.FONT_HERSHEY_PLAIN, 2, (25, 75, 150), 2)
 
@@ -232,7 +231,7 @@ def main():
                 label = 'Pose number 2'
                 color = (0, 255, 0)
 
-            cv2.putText(frame, label, (50, 100), cv2.FONT_HERSHEY_PLAIN, 2, color, 2)
+            #cv2.putText(frame, label, (50, 100), cv2.FONT_HERSHEY_PLAIN, 2, color, 2)
             cv2.imshow('My Coach', frame)
 
         # Wait until a key is pressed.
