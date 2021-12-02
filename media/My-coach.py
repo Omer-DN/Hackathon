@@ -34,6 +34,10 @@ def detect_pose(image, pose):
     # Check if any landmarks are detected.
     if results.pose_landmarks:
 
+        # Draw Pose landmarks on the output image.
+        mp_drawing.draw_landmarks(image=output_image, landmark_list=results.pose_landmarks,
+                                  connections=mp_pose.POSE_CONNECTIONS)
+
         # Iterate over the detected landmarks.
         for landmark in results.pose_landmarks.landmark:
             # Append the landmark into the list.
@@ -89,7 +93,7 @@ def left_hand_angles(landmarks, mp_pose):
     return left_shoulder_angle, left_elbow_angle
 
 
-def serratus_strech(shoulder_angle, elbow_angle):
+def serratus_stretch(shoulder_angle, elbow_angle):
     if abs(shoulder_angle - 260) < 15 and abs(elbow_angle - 165) < 15:
         return 1
 
@@ -165,7 +169,7 @@ def main():
         if landmarks:
             if choice == 1:
                 right_shoulder_angle, right_elbow_angle = right_hand_angles(landmarks, mp_pose)
-                pose_score = serratus_strech(right_shoulder_angle, right_elbow_angle)
+                pose_score = serratus_stretch(right_shoulder_angle, right_elbow_angle)
 
             elif choice == 2:
                 _, right_elbow_angle = right_hand_angles(landmarks, mp_pose)
@@ -229,12 +233,14 @@ def main():
             break
         # Check if '1' is pressed
         if k == 49:
+            cv2.putText(frame, "serratus_strech (left hand)", (50, 200), cv2.FONT_HERSHEY_PLAIN, 2, (25, 75, 150), 2)
             choice = 1
             counter = 0
             arrivePose1 = False
             first_time = True
             # Check if '2' is pressed
         elif k == 50:
+            cv2.putText(frame, "2 - lift_weights", (50, 250), cv2.FONT_HERSHEY_PLAIN, 2, (25, 75, 150), 2)
             choice = 2
             counter = 0
             arrivePose1 = False
