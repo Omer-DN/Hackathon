@@ -33,10 +33,6 @@ def detect_pose(image, pose):
     # Check if any landmarks are detected.
     if results.pose_landmarks:
 
-        # Draw Pose landmarks on the output image.
-       # mp_drawing.draw_landmarks(image=output_image, landmark_list=results.pose_landmarks,
-        #                          connections=mp_pose.POSE_CONNECTIONS)
-
         # Iterate over the detected landmarks.
         for landmark in results.pose_landmarks.landmark:
             # Append the landmark into the list.
@@ -64,7 +60,6 @@ def calculate_angle(landmark1, landmark2, landmark3):
     return angle
 
 
-#####################################################################
 def right_hand_angles(landmarks, mp_pose):
     # Get the angle between the right shoulder, elbow and wrist points.
     right_elbow_angle = calculate_angle(landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value],
@@ -93,8 +88,6 @@ def left_hand_angles(landmarks, mp_pose):
     return left_shoulder_angle, left_elbow_angle
 
 
-#####################################################################
-
 def serratus_strech(shoulder_angle, elbow_angle):
     if abs(shoulder_angle - 260) < 15 and abs(elbow_angle - 165) < 15:
         return 1
@@ -117,26 +110,12 @@ def lift_weights(limb1, limb2):
         return 0
 
 
-def distance_from_pose_A(limb1, limb2, state):
-    if state == 1:
-        return int(abs(limb1 - 260 -15)), int(abs(limb2 - 165 -15))
-    elif state == 2:
-        return int(abs(limb1 - 180 -15)), int(abs(limb2 - 180 -15))
-
-
-def distance_from_pose_B(limb1, limb2, state):
-    if state == 1:
-        return int(abs(limb1 - 168 -15)), int(abs(limb2 - 131 -15))
-    elif state == 2:
-        return int(abs(limb1 - 10 -15)), int(abs(limb2 - 10 -15))
-
-
 def main():
     counter = 0
     arrivePose1 = False
     first_time = True
 
-    choice = int(input('enter exercise name: \n(1-starch, 2-lift_weights)'))
+    choice = int(input('enter exercise name: (1-starch, 2-lift_weights)\n'))
 
     # Setup Pose function for video.
     pose_video = mp_pose.Pose(static_image_mode=False, min_detection_confidence=0.5, model_complexity=1)
@@ -187,30 +166,26 @@ def main():
             cv2.putText(frame, label, (100, 100), cv2.FONT_HERSHEY_PLAIN, 2, color, 2)
 
             if arrivePose1 == False:
-                if choice ==1:
-                    shoulder_distance, elbow_distance = distance_from_pose_A(right_shoulder_angle, right_elbow_angle, 1)
-
-                    if first_time:
+                if choice == 1:
+                    if first_time == True:
                         distance_label = "UP"
                         first_time = False
                     else:
                         distance_label = "DOWN"
 
-                elif choice ==2:
-
+                elif choice == 2:
                     if first_time:
                         distance_label = "UP"
                         first_time = False
                     else:
                         distance_label = "DOWN"
             else:
-                if choice ==1:
+                if choice == 1:
                     distance_label = "UP"
-                elif choice ==2:
+                elif choice == 2:
                     distance_label = "UP"
 
             cv2.putText(frame, distance_label, (100, 50), cv2.FONT_HERSHEY_PLAIN, 2, (25, 75, 150), 2)
-
 
             # Perform the Pose Classification.
             if pose_score == 0:
@@ -227,11 +202,10 @@ def main():
                 if arrivePose1:
                     counter += 1
                     arrivePose1 = False
-                # Display the frame.
                 label = 'Pose number 2'
                 color = (0, 255, 0)
 
-            #cv2.putText(frame, label, (50, 100), cv2.FONT_HERSHEY_PLAIN, 2, color, 2)
+            # cv2.putText(frame, label, (50, 100), cv2.FONT_HERSHEY_PLAIN, 2, color, 2)
             cv2.imshow('My Coach', frame)
 
         # Wait until a key is pressed.
