@@ -99,23 +99,34 @@ def serratus_strech(shoulder_angle, elbow_angle):
         return 0
 
 
-def lift_weights(limb1, limb2):
-    if abs(limb1 - 180) < 15 and abs(limb2 - 180) < 15:
-        return 1
+def lift_weights(limb1, limb2, landmarks):
 
-    elif abs(limb1 - 10) < 15 and abs(limb2 - 10) < 15:
-        return 2
+    # Get the angle between the left elbow, shoulder and hip points.
+    left_shoulder_angle = calculate_angle(landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value],
+                                          landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value],
+                                          landmarks[mp_pose.PoseLandmark.LEFT_HIP.value])
 
-    else:
+    # Get the angle between the right hip, shoulder and elbow points.
+    right_shoulder_angle = calculate_angle(landmarks[mp_pose.PoseLandmark.RIGHT_HIP.value],
+                                           landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value],
+                                           landmarks[mp_pose.PoseLandmark.RIGHT_ELBOW.value])
+
+    if left_shoulder_angle < 45 and right_shoulder_angle < 45:
+
+        if abs(limb1 - 180) < 15 and abs(limb2 - 180) < 15:
+            return 1
+        elif abs(limb1 - 10) < 15 and abs(limb2 - 10) < 15:
+            return 2
+
         return 0
 
 
 def main():
+    # initiate variables
     counter = 0
     arrivePose1 = False
     first_time = True
-
-    choice = int(input('enter exercise name: (1-starch, 2-lift_weights)\n'))
+    choice = 1
 
     # Setup Pose function for video.
     pose_video = mp_pose.Pose(static_image_mode=False, min_detection_confidence=0.5, model_complexity=1)
@@ -151,7 +162,6 @@ def main():
 
         # Check if the landmarks are detected.
         if landmarks:
-
             if choice == 1:
                 right_shoulder_angle, right_elbow_angle = right_hand_angles(landmarks, mp_pose)
                 pose_score = serratus_strech(right_shoulder_angle, right_elbow_angle)
@@ -159,7 +169,7 @@ def main():
             elif choice == 2:
                 _, right_elbow_angle = right_hand_angles(landmarks, mp_pose)
                 _, left_elbow_angle = left_hand_angles(landmarks, mp_pose)
-                pose_score = lift_weights(right_elbow_angle, left_elbow_angle)
+                pose_score = lift_weights(right_elbow_angle, left_elbow_angle, landmarks)
 
             label = "succeeded: " + str(counter)
             color = (0, 0, 0)
@@ -167,16 +177,14 @@ def main():
 
             if arrivePose1 == False:
                 if choice == 1:
-                    if first_time == True:
+                    if first_time:
                         distance_label = "UP"
-                        first_time = False
                     else:
                         distance_label = "DOWN"
 
                 elif choice == 2:
                     if first_time:
                         distance_label = "UP"
-                        first_time = False
                     else:
                         distance_label = "DOWN"
             else:
@@ -194,6 +202,7 @@ def main():
 
             elif pose_score == 1:
                 arrivePose1 = True
+                first_time = False
                 # Display the frame.
                 label = 'Pose number 1'
                 color = (0, 255, 0)
@@ -213,9 +222,22 @@ def main():
         k = cv2.waitKey(1) & 0xFF
 
         # Check if 'ESC' is pressed.
-        if (k == 27):
+        if k == 27:
             # Break the loop.
             break
+        # Check if '1' is pressed
+        if k == 49:
+            choice = 1
+            counter = 0
+            arrivePose1 = False
+            first_time = True
+            # Check if '2' is pressed
+        elif k == 50:
+            choice = 2
+            counter = 0
+            arrivePose1 = False
+            first_time = True
+
 
     # Release the VideoCapture object and close the windows.
     camera_video.release()
