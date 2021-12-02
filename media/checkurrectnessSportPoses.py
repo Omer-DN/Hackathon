@@ -1,6 +1,7 @@
 import cv2
 import mediapipe as mp
 import math
+import tkinter
 
 # Initializing mediapipe pose class.
 mp_pose = mp.solutions.pose
@@ -171,9 +172,10 @@ def main():
                 _, left_elbow_angle = left_hand_angles(landmarks, mp_pose)
                 pose_score = lift_weights(right_elbow_angle, left_elbow_angle, landmarks)
 
+            cv2.rectangle(frame, (0, 0), (250, 125), (255, 255, 255), -1)
             label = "succeeded: " + str(counter)
-            color = (0, 0, 0)
-            cv2.putText(frame, label, (100, 100), cv2.FONT_HERSHEY_PLAIN, 2, color, 2)
+            color = (0, 255, 0)
+            cv2.putText(frame, label, (25, 100), cv2.FONT_HERSHEY_PLAIN, 2, color, 2)
 
             if arrivePose1 == False:
                 if choice == 1:
@@ -193,7 +195,7 @@ def main():
                 elif choice == 2:
                     distance_label = "UP"
 
-            cv2.putText(frame, distance_label, (100, 50), cv2.FONT_HERSHEY_PLAIN, 2, (25, 75, 150), 2)
+            cv2.putText(frame, distance_label, (25, 50), cv2.FONT_HERSHEY_PLAIN, 2, (25, 75, 150), 2)
 
             # Perform the Pose Classification.
             if pose_score == 0:
@@ -215,7 +217,7 @@ def main():
                 color = (0, 255, 0)
 
             # cv2.putText(frame, label, (50, 100), cv2.FONT_HERSHEY_PLAIN, 2, color, 2)
-            cv2.imshow('My Coach', frame)
+            #cv2.imshow('My Coach', frame)
 
         # Wait until a key is pressed.
         # Retreive the ASCII code of the key pressed
@@ -237,7 +239,14 @@ def main():
             counter = 0
             arrivePose1 = False
             first_time = True
+        # Check if '2' is pressed
+        elif k == 51:
+            cv2.putText(frame, "1 - serratus_strech (left hand)", (50, 200), cv2.FONT_HERSHEY_PLAIN, 2, (25, 75, 150), 2)
+            cv2.putText(frame, "2 - lift_weights", (50, 250), cv2.FONT_HERSHEY_PLAIN, 2, (25, 75, 150), 2)
+            cv2.putText(frame, "3 - menu", (50, 300), cv2.FONT_HERSHEY_PLAIN, 2, (25, 75, 150), 2)
+            print("3 pressed")
 
+        cv2.imshow('My Coach', frame)
 
     # Release the VideoCapture object and close the windows.
     camera_video.release()
