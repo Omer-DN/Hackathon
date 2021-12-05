@@ -1,12 +1,12 @@
-
 import math
+
+
 import cv2
 import numpy as np
 from time import time
 import mediapipe as mp
 import matplotlib.pyplot as plt
 from pyparsing import results
-
 
 # Initializing mediapipe pose class.
 mp_pose = mp.solutions.pose
@@ -84,69 +84,79 @@ def detectPose(image, pose, display=True):
 
 
 def main():
-    print("Start")
 
-    # Read an image from the specified path.
-    sample_img = cv2.imread('media/sample4.jpg')
+    # Setup Pose function for video.
+    pose_video = mp_pose.Pose(static_image_mode=False, min_detection_confidence=0.5, model_complexity=1)
 
-    # Specify a size of the figure.
-    plt.figure(figsize=[10, 10])
+    # Initialize the VideoCapture object to read from the webcam.
+    # video = cv2.VideoCapture(0)
 
-    # Display the sample image, also convert BGR to RGB for display.
-    plt.title("Sample Image")
-    plt.axis('off')
-    plt.imshow(sample_img[:, :, ::-1])
-    plt.show()
+    # Initialize the VideoCapture object to read from a video stored in the disk.
+    video = cv2.VideoCapture(0)
 
-    # Perform pose detection after converting the image into RGB format.
-    results = pose.process(cv2.cvtColor(sample_img, cv2.COLOR_BGR2RGB))
+    # Initialize a variable to store the time of the previous frame.
+    time1 = 0
 
-    # Check if any landmarks are found.
-    if results.pose_landmarks:
+    # Iterate until the video is accessed successfully.
+    while video.isOpened():
 
-        # Iterate two times as we only want to display first two landmarks.
-        for i in range(2):
-            # Display the found normalized landmarks.
-            print(f'{mp_pose.PoseLandmark(i).name}:\n{results.pose_landmarks.landmark[mp_pose.PoseLandmark(i).value]}')
+        # Read a frame.
+        ok, frame = video.read()
 
-    image_height, image_width, _ = sample_img.shape
+        # Check if frame is not read properly.
+        if not ok:
+            # Break the loop.
+            break
 
-    # Check if any landmarks are found.
-    if results.pose_landmarks:
+        # Flip the frame horizontally for natural (selfie-view) visualization.
+        frame = cv2.flip(frame, 1)
 
-        # Iterate two times as we only want to display first two landmark.
-        for i in range(2):
-            # Display the found landmarks after converting them into their original scale.
-            print(f'{mp_pose.PoseLandmark(i).name}:')
-            print(f'x: {results.pose_landmarks.landmark[mp_pose.PoseLandmark(i).value].x * image_width}')
-            print(f'y: {results.pose_landmarks.landmark[mp_pose.PoseLandmark(i).value].y * image_height}')
-            print(f'z: {results.pose_landmarks.landmark[mp_pose.PoseLandmark(i).value].z * image_width}')
-            print(f'visibility: {results.pose_landmarks.landmark[mp_pose.PoseLandmark(i).value].visibility}\n')
+        # Get the width and height of the frame
+        frame_height, frame_width, _ = frame.shape
 
-    # Create a copy of the sample image to draw landmarks on.
-    img_copy = sample_img.copy()
+        # Resize the frame while keeping the aspect ratio.
+        frame = cv2.resize(frame, (int(frame_width * (640 / frame_height)), 640))
 
-    # Check if any landmarks are found.
-    if results.pose_landmarks:
-        # Draw Pose landmarks on the sample image.
-        mp_drawing.draw_landmarks(image=img_copy, landmark_list=results.pose_landmarks,
-                                  connections=mp_pose.POSE_CONNECTIONS)
+        # Perform Pose landmark detection.
+        frame, _ = detectPose(frame, pose_video, display=False)
 
-        # Specify a size of the figure.
-        fig = plt.figure(figsize=[10, 10])
+        # Set the time for this frame to the current time.
+        time2 = time()
 
-        # Display the output image with the landmarks drawn, also convert BGR to RGB for display.
-        plt.title("Output");
-        plt.axis('off');
-        plt.imshow(img_copy[:, :, ::-1]);
-        plt.show()
+        # Check if the difference between the previous and this frame time &gt; 0 to avoid division by zero.
+        if (time2 - time1)  > 0:
 
-    # Plot Pose landmarks in 3D.
-    mp_drawing.plot_landmarks(results.pose_world_landmarks, mp_pose.POSE_CONNECTIONS)
+            # Calculate the number of frames per second.
+            frames_per_second = 1.0 / (time2 - time1)
 
-    # Read another sample image and perform pose detection on it.
-    image = cv2.imread('media/sample1.jpg')
-    detectPose(image, pose, display=True)
+            # Write the calculated number of frames per second on the frame.
+            cv2.putText(frame, 'FPS: {}'.format(int(frames_per_second)), (10, 30), cv2.FONT_HERSHEY_PLAIN, 2,
+                        (0, 255, 0), 3)
+
+        # Update the previous frame time to this frame time.
+        # As this frame will become previous frame in next iteration.
+        time1 = time2
+
+        # Display the frame.
+        cv2.imshow('Pose Detection', frame)
+
+        # Wait until a key is pressed.
+        # Retreive the ASCII code of the key pressed
+        k = cv2.waitKey(1) & 0xFF
+
+        # Check if 'ESC' is pressed.
+        if (k == 27):
+            # Break the loop.
+            break
+
+    # Release the VideoCapture object.
+    video.release()
+
+    # Close the windows.
+    cv2.destroyAllWindows()
+
+
+
 
 
 if __name__ == "__main__":
