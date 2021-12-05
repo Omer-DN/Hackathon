@@ -1,7 +1,6 @@
 import cv2
 import mediapipe as mp
 import math
-import tkinter
 
 # Initializing mediapipe pose class.
 mp_pose = mp.solutions.pose
