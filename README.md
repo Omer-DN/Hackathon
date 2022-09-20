@@ -28,4 +28,4 @@ downside therefore it will be written UP (means the user needs to move up his ha
 ---------------------------------
 The code was written as part of the hackathon, therefore the code is a little bit messy and incomplete due to the shortness of time.
 
-for any comments on the code, you can send an email to: yohananyakir@gmail.com.
+for any comments on the code, you can send an email to: yohananyakir@gmail.com, Omerdayan94@gmail.com
